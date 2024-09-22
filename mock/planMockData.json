@@ -1,0 +1,23 @@
+{
+  "supplier": "aliquip dolore",
+  "plan": "commodo eu sunt mollit aliqua",
+  "standing_charge": 32985502,
+  "rates": [
+    {
+      "price": 58302794.903198674,
+      "threshold": 46196060
+    },
+    {
+      "price": 31431479.361395855,
+      "threshold": 17902915
+    },
+    {
+      "price": 32490190.85479128,
+      "threshold": 80258202
+    },
+    {
+      "price": 55294423.009221226,
+      "threshold": 66834746
+    }
+  ]
+}
