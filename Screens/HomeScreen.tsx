@@ -1,95 +1,67 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
-  Text,
   View,
+  Text,
   FlatList,
+  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
+  Button,
+  BackHandler,
 } from 'react-native';
-import planMockData from '../mock/planMockData.json';
-import {Plan, Rate} from '../models/Plan_Model';
+import {calculateAnnualCharge} from '../utils';
+import {plansData} from '../mock/planMockData';
 
-const HomeScreen = () => {
-  const [planData, setPlanData] = useState<Plan | null>(null);
+const annualUsage = 100;
 
-  useEffect(() => {
-    fetchPlanData();
-  }, []);
+const PlanSelector = () => {
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [totalCost, setTotalCost] = useState<number | null>(null);
 
-  const fetchPlanData = async () => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setPlanData(planMockData);
-    } catch (error) {
-      console.error('Error fetching plan data:', error);
-    }
+  const handleSelectPlan = (plan: any) => {
+    setSelectedPlan(plan);
+    const cost = calculateAnnualCharge(plan, annualUsage);
+    setTotalCost(cost);
   };
 
-  const renderRateItem = ({item}: {item: Rate}) => (
-    <View style={styles.rateItem}>
-      <Text style={styles.rateText}>Price: ${item.price.toFixed(2)}</Text>
-      <Text style={styles.rateText}>Threshold: {item.threshold}</Text>
-    </View>
+  const handleExitPlan = () => {
+    setSelectedPlan(null);
+    setTotalCost(null);
+  };
+
+  const renderPlanItem = ({item}: {item: any}) => (
+    <TouchableOpacity
+      style={styles.planItem}
+      onPress={() => handleSelectPlan(item)}>
+      <Text style={styles.planText}>
+        Supplier: {item.supplier} - Plan: {item.plan}
+      </Text>
+    </TouchableOpacity>
   );
-
-  //Display Calculations
-
-  const calculateTotalCost = (usage: number) => {
-    let totalCost = planData?.standing_charge || 0;
-
-    for (const rate of planData?.rates || []) {
-      if (usage > rate.threshold) {
-        totalCost += rate.price * rate.threshold;
-        usage -= rate.threshold;
-      } else {
-        totalCost += rate.price * usage;
-        break;
-      }
-    }
-
-    return totalCost;
-  };
-
-  const averageRate = () => {
-    const totalPrice =
-      planData?.rates.reduce((acc, rate) => acc + rate.price, 0) || 0;
-    return totalPrice / (planData?.rates.length || 1);
-  };
-
-  const totalThreshold = () => {
-    return planData?.rates.reduce((acc, rate) => acc + rate.threshold, 0) || 0;
-  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Plan Overview</Text>
+      <Text style={styles.title}>Select a Supplier</Text>
+      <FlatList
+        data={plansData}
+        keyExtractor={item => item.supplier}
+        renderItem={renderPlanItem}
+        style={styles.planList}
+      />
 
-      {planData ? (
-        <>
-          <Text style={styles.supplierText}>Supplier: {planData.supplier}</Text>
-          <Text style={styles.planText}>Plan: {planData.plan}</Text>
-
-          {/* Display calculations */}
-          <Text style={styles.calculationText}>
-            Total Cost (for 100 units): ${calculateTotalCost(100).toFixed(2)}
+      {selectedPlan && (
+        <View style={styles.detailsContainer}>
+          <Text style={styles.detailsText}>Selected Plan:</Text>
+          <Text style={styles.detailsText}>
+            Supplier: {selectedPlan.supplier}
           </Text>
-          <Text style={styles.calculationText}>
-            Average Rate: ${averageRate().toFixed(2)}
-          </Text>
-          <Text style={styles.calculationText}>
-            Total Threshold: {totalThreshold()}
-          </Text>
-
-          <FlatList
-            data={planData.rates}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderRateItem}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-          />
-        </>
-      ) : (
-        <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.detailsText}>Plan: {selectedPlan.plan}</Text>
+          {totalCost !== null && (
+            <Text style={styles.detailsText}>
+              Total Cost: £{totalCost.toFixed(2)}
+            </Text>
+          )}
+          <Button title="Exit" onPress={handleExitPlan} />
+        </View>
       )}
     </View>
   );
@@ -99,52 +71,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#fff',
   },
-  calculationText: {
-    fontSize: 16,
-    marginVertical: 5,
-    color: '#007BFF',
-  },
-  header: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 20,
-    color: '#333',
   },
-  supplierText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: '#555',
+  planList: {
+    marginBottom: 20,
+  },
+  planItem: {
+    padding: 15,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    marginVertical: 10,
   },
   planText: {
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 20,
-    color: '#555',
   },
-  rateItem: {
+  detailsContainer: {
     padding: 15,
-    borderRadius: 8,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#e0f7fa',
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  detailsText: {
+    fontSize: 18,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2, // For Android
-  },
-  rateText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  listContainer: {
-    paddingBottom: 20,
   },
 });
 
-export default HomeScreen;
+export default PlanSelector;

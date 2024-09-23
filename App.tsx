@@ -5,10 +5,8 @@
  * @format
  */
 import {NavigationContainer} from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 import React, {useState} from 'react';
-import type {PropsWithChildren} from 'react';
 import {
   Button,
   SafeAreaView,
@@ -20,32 +18,34 @@ import {
   View,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
 import HomeScreen from './Screens/HomeScreen';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {calculateAnnualCharge, logPlanPrices} from './utils';
+import {plansData} from './mock/planMockData';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const ANNUAL_USAGE = 100; // kWh usage
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  const [count, setCount] = useState(0);
+  const Stack = createNativeStackNavigator();
 
-  const Tab = createBottomTabNavigator();
+  // Step 1
+  console.log('Step 1');
+  const totalCharge = calculateAnnualCharge(plansData[0], ANNUAL_USAGE);
+  console.log(totalCharge, 'totalcharge');
+
+  // //Step 2
+  console.log('step 2');
+  console.log(logPlanPrices(plansData, ANNUAL_USAGE));
 
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Second" component={HomeScreen} />
-      </Tab.Navigator>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{headerShown: false}}
+        />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }

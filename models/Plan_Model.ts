@@ -1,11 +1,11 @@
-export interface Rate {
+export type Rate = {
   price: number;
-  threshold: number;
-}
+  threshold?: number;
+};
 
-export interface Plan {
+export type Plan = {
   supplier: string;
   plan: string;
-  standing_charge: number;
   rates: Rate[];
-}
+  standing_charge?: number;
+};
